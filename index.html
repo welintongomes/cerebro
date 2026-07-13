@@ -151,49 +151,60 @@
     </div>
 
     <!-- PAINEL DE NOTAS INTEGRADAS -->
-    <div class="panel">
-        <h2>📝 Suas Notas (Texto Rico)</h2>
+<!-- Mantenha o ID 'panel-notes' para o seu CSS de layout -->
+<div class="panel">
+    <!-- Agora o detalhes envolve apenas o conteúdo, mantendo o H2 fora para ficar fixo -->
+    <h2>📝 Suas Notas (Texto Rico)</h2>
+    
+    <details class="panel-accordion">
+        <summary style="cursor: pointer; padding: 10px; background: #f1f5f9; border-radius: 8px; margin-bottom: 10px;">
+            Expandir / Recolher Painel
+        </summary>
         
-        <!-- Formulário Recolhível (Acordeão) -->
-        <details id="note-form-accordion" class="form-accordion">
-            <summary id="note-form-title">➕ Criar Nova Nota</summary>
-            <div class="form-content">
-                <input type="text" id="note-title" placeholder="Ex: Conserto da máquina">
+        <div class="panel-content">
+            <!-- Formulário Recolhível (Formulário dentro da nota) -->
+            <details id="note-form-accordion" class="form-accordion">
+                <summary id="note-form-title">➕ Criar Nova Nota</summary>
+                <div class="form-content">
+                    <input type="text" id="note-title" placeholder="Ex: Conserto da máquina">
 
-                <div style="position: relative;">
-                    <label>Vincular Biblioteca</label>
-                    <input type="text" id="link-library-input" placeholder="Buscar e anexar... (Insere onde o cursor estiver)" oninput="showSuggestions(this.value)">
-                    <div id="suggestions" class="autocomplete-suggestions" style="display: none; position:absolute;"></div>
+                    <div style="position: relative;">
+                        <label>Vincular Biblioteca</label>
+                        <input type="text" id="link-library-input" placeholder="Buscar e anexar..." oninput="showSuggestions(this.value)">
+                        <div id="suggestions" class="autocomplete-suggestions" style="display: none; position:absolute;"></div>
+                    </div>
+
+                    <textarea id="note-content" rows="6" placeholder="Escreva aqui..."></textarea>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                        <input type="file" id="note-image-input" accept="image/*" style="display: none;" onchange="handleNoteImageSelection(event)">
+                        <input type="file" id="note-camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handleNoteImageSelection(event)">
+                        <button class="btn-outline" onclick="document.getElementById('note-image-input').click()">🖼️ Galeria</button>
+                        <button class="btn-outline" onclick="document.getElementById('note-camera-input').click()">📷 Câmera</button>
+                        <button class="btn-outline" id="btn-record-note-audio" onclick="toggleNoteAudioRecording()">🎤 Áudio</button>
+                    </div>
+
+                    <div class="media-preview-container" id="note-media-preview-area"></div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="saveNoteItem()" id="btn-save-note">Salvar Nota</button>
+                        <button onclick="cancelNoteEdit()" id="btn-cancel-note" style="display: none; background: #94a3b8; width: auto;">Cancelar</button>
+                    </div>
                 </div>
+            </details>
 
-                <textarea id="note-content" rows="6" placeholder="Escreva aqui... (Use o campo de busca acima para injetar conexões no texto)"></textarea>
-
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-                    <input type="file" id="note-image-input" accept="image/*" style="display: none;" onchange="handleNoteImageSelection(event)">
-                    <input type="file" id="note-camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handleNoteImageSelection(event)">
-                    <button class="btn-outline" onclick="document.getElementById('note-image-input').click()">🖼️ Galeria</button>
-                    <button class="btn-outline" onclick="document.getElementById('note-camera-input').click()">📷 Câmera</button>
-                    <button class="btn-outline" id="btn-record-note-audio" onclick="toggleNoteAudioRecording()">🎤 Áudio</button>
-                </div>
-
-                <div class="media-preview-container" id="note-media-preview-area"></div>
-                
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="saveNoteItem()" id="btn-save-note">Salvar Nota</button>
-                    <button onclick="cancelNoteEdit()" id="btn-cancel-note" style="display: none; background: #94a3b8; width: auto;">Cancelar</button>
-                </div>
+            <!-- AQUI: IDs originais preservados para que a pesquisa funcione -->
+            <input type="text" id="search-notes" placeholder="🔍 Pesquisar em todas as notas..." oninput="triggerSearchNotes()" style="margin-top: 10px;">
+            
+            <div class="scroll-list" id="notes-list">
+                <div id="notes-container"></div>
+                <!-- Sentinela para o Infinite Scroll -->
+                <div id="notes-sentinel" class="sentinel"></div>
             </div>
-        </details>
-
-        <input type="text" id="search-notes" placeholder="🔍 Pesquisar em todas as notas..." oninput="triggerSearchNotes()" style="margin-top: 10px;">
-        
-        <div class="scroll-list" id="notes-list">
-            <div id="notes-container"></div>
-            <!-- Sentinela para o Infinite Scroll -->
-            <div id="notes-sentinel" class="sentinel"></div>
         </div>
-    </div>
+    </details>
 </div>
+
 
 <!-- MODAL DA BIBLIOTECA -->
 <div class="modal-overlay" id="info-modal" onclick="closeModal(event)">
