@@ -44,8 +44,6 @@
         .btn-accent:hover { background: #0284c7; }
         .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
         .btn-outline:hover { background: #f1f5f9; }
-        .btn-danger { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
-        .btn-danger:hover { background: #fecaca; }
         .recording { animation: pulse 1.5s infinite; background: var(--danger) !important; color: white !important; border-color: var(--danger) !important;}
         
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
@@ -54,7 +52,7 @@
         .icon-btn { background: #f1f5f9; color: var(--text); border: none; padding: 6px; border-radius: 6px; cursor: pointer; width: auto; font-size: 0.9rem;}
         .icon-btn:hover { background: #e2e8f0; }
 
-        .scroll-list { flex-grow: 1; overflow-y: auto; max-height: 500px; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
+        .scroll-list { flex-grow: 1; overflow-y: auto; max-height: 600px; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
         
         .lib-item { background: #f1f5f9; padding: 12px; border-radius: 8px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 8px; border: 1px solid transparent; }
         .lib-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold;}
@@ -71,7 +69,7 @@
         .note-title { font-weight: 700; font-size: 1.1rem; color: #0f172a; }
         .note-body { font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap; color: #334155; }
         
-        /* Media Previews nas Notas e Formulário */
+        /* Media Previews */
         .media-preview-container { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px; }
         .media-box { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: #f8fafc; padding: 5px; display: flex; align-items: center; justify-content: center;}
         .media-box img { max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 4px; }
@@ -80,7 +78,7 @@
 
         /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(2px); }
-        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
         .modal-header { font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a;}
         .close-btn { cursor: pointer; background: #f1f5f9; border: none; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; font-weight: bold; }
     </style>
@@ -96,7 +94,19 @@
             <label id="lib-form-title">Novo Item de Referência</label>
             <input type="text" id="lib-title" placeholder="Ex: Algoritmo SM-2">
             <input type="text" id="lib-category" placeholder="Categoria (Ex: Programação)">
+            
+            <!-- Botões de Multimídia da BIBLIOTECA -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <!-- ATENÇÃO: Sem o capture="environment" para permitir abrir a galeria -->
+                <input type="file" id="lib-image-input" accept="image/*" style="display: none;" onchange="handleLibImageSelection(event)">
+                <button class="btn-outline" onclick="document.getElementById('lib-image-input').click()">📷 Foto / Galeria</button>
+                <button class="btn-outline" id="btn-record-lib-audio" onclick="toggleLibAudioRecording()">🎤 Gravar Áudio</button>
+            </div>
+            
+            <div class="media-preview-container" id="lib-media-preview-area"></div>
+
             <textarea id="lib-content" rows="3" placeholder="Descrição ou código..."></textarea>
+            
             <div style="display: flex; gap: 10px;">
                 <button onclick="saveLibraryItem()" id="btn-save-lib" class="btn-accent">Salvar na Biblioteca</button>
                 <button onclick="cancelLibEdit()" id="btn-cancel-lib" style="display: none; background: #94a3b8; width: auto;">Cancelar</button>
@@ -114,7 +124,6 @@
             <label id="note-form-title">Criar Nota</label>
             <input type="text" id="note-title" placeholder="Ex: Resumo da aula">
 
-            <!-- Vínculo com a Biblioteca -->
             <div style="position: relative;">
                 <label>Vincular Biblioteca</label>
                 <input type="text" id="link-library-input" placeholder="Buscar e anexar um item..." oninput="showSuggestions(this.value)">
@@ -122,19 +131,15 @@
                 <div class="chips-container" id="linked-chips"></div>
             </div>
 
-            <!-- Botões de Multimídia -->
+            <!-- Botões de Multimídia das NOTAS -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <!-- Input de arquivo invisível (Camera/Galeria) -->
-                <input type="file" id="note-image-input" accept="image/*" capture="environment" style="display: none;" onchange="handleImageSelection(event)">
+                <!-- ATENÇÃO: Sem o capture="environment" para permitir abrir a galeria -->
+                <input type="file" id="note-image-input" accept="image/*" style="display: none;" onchange="handleNoteImageSelection(event)">
                 <button class="btn-outline" onclick="document.getElementById('note-image-input').click()">📷 Foto / Galeria</button>
-                
-                <button class="btn-outline" id="btn-record-audio" onclick="toggleAudioRecording()">🎤 Gravar Áudio</button>
+                <button class="btn-outline" id="btn-record-note-audio" onclick="toggleNoteAudioRecording()">🎤 Gravar Áudio</button>
             </div>
 
-            <!-- Área de Preview dos Arquivos Anexados -->
-            <div class="media-preview-container" id="media-preview-area">
-                <!-- A imagem e o áudio aparecerão aqui antes de salvar -->
-            </div>
+            <div class="media-preview-container" id="note-media-preview-area"></div>
 
             <textarea id="note-content" rows="4" placeholder="Suas anotações textuais..."></textarea>
             
@@ -159,23 +164,35 @@
             </div>
             <button class="close-btn" onclick="closeModal(null, true)">✕</button>
         </div>
+        <!-- Área para mídia da biblioteca no modal -->
+        <div id="modal-media" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;"></div>
         <div class="modal-body" id="modal-body" style="white-space: pre-wrap; font-size: 1rem; color: #334155;">Conteúdo aqui...</div>
     </div>
 </div>
 
 <script>
     let db;
-    let selectedLibraryIds = [];
+    
+    // Controles de Edição (Corrigido para armazenar as datas)
     let editingLibId = null;
     let editingNoteId = null;
+    let editingNoteDate = null; // Guardará a data para evitar o erro de Transação Inativa
 
-    // --- VARIÁVEIS PARA MULTIMÍDIA ---
-    let currentAttachedImage = null; // Guardará o File (Blob) da imagem
-    let currentAttachedAudio = null; // Guardará o Blob do áudio
-    
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let isRecording = false;
+    let selectedLibraryIds = [];
+
+    // Variáveis Multimídia - NOTAS
+    let noteImage = null;
+    let noteAudio = null;
+    let noteMediaRecorder = null;
+    let noteAudioChunks = [];
+    let isNoteRecording = false;
+
+    // Variáveis Multimídia - BIBLIOTECA
+    let libImage = null;
+    let libAudio = null;
+    let libMediaRecorder = null;
+    let libAudioChunks = [];
+    let isLibRecording = false;
 
     // --- ABERTURA DO BANCO DE DADOS ---
     const request = indexedDB.open("ConnectedKnowledgeDB_v2", 1);
@@ -193,116 +210,110 @@
     };
 
     // ==========================================
-    // ÁUDIO E IMAGEM (LÓGICA)
+    // ÁUDIO E IMAGEM - LÓGICA DAS NOTAS
     // ==========================================
-    
-    function handleImageSelection(event) {
-        const file = event.target.files[0];
-        if(file) {
-            currentAttachedImage = file;
-            updateMediaPreviews();
-        }
-    }
+    function handleNoteImageSelection(e) { if(e.target.files[0]) { noteImage = e.target.files[0]; updateNoteMediaPreviews(); } }
+    function removeNoteImage() { noteImage = null; document.getElementById('note-image-input').value = ""; updateNoteMediaPreviews(); }
+    function removeNoteAudio() { noteAudio = null; updateNoteMediaPreviews(); }
 
-    async function toggleAudioRecording() {
-        const btn = document.getElementById('btn-record-audio');
-        
-        if (!isRecording) {
+    async function toggleNoteAudioRecording() {
+        const btn = document.getElementById('btn-record-note-audio');
+        if (!isNoteRecording) {
             try {
-                // Pede permissão e inicia a gravação
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
-                
-                mediaRecorder.onstop = () => {
-                    // Quando para de gravar, junta os pedaços num arquivo Blob
-                    currentAttachedAudio = new Blob(audioChunks, { type: 'audio/webm' });
-                    updateMediaPreviews();
+                noteMediaRecorder = new MediaRecorder(stream);
+                noteAudioChunks = [];
+                noteMediaRecorder.ondataavailable = e => { if(e.data.size > 0) noteAudioChunks.push(e.data); };
+                noteMediaRecorder.onstop = () => {
+                    noteAudio = new Blob(noteAudioChunks, { type: 'audio/webm' });
+                    updateNoteMediaPreviews();
                 };
-
-                mediaRecorder.start();
-                isRecording = true;
-                btn.classList.add('recording');
-                btn.innerHTML = '⏹️ Parar Gravação';
-            } catch (err) {
-                alert("Erro ao acessar microfone. Certifique-se de dar permissão e estar usando um servidor local (HTTPS ou Localhost).");
-            }
+                noteMediaRecorder.start();
+                isNoteRecording = true;
+                btn.classList.add('recording'); btn.innerHTML = '⏹️ Parar Gravação';
+            } catch (err) { alert("Erro ao acessar microfone."); }
         } else {
-            // Para a gravação
-            mediaRecorder.stop();
-            isRecording = false;
-            btn.classList.remove('recording');
-            btn.innerHTML = '🎤 Gravar Áudio';
+            noteMediaRecorder.stop(); isNoteRecording = false;
+            btn.classList.remove('recording'); btn.innerHTML = '🎤 Gravar Áudio';
         }
     }
 
-    function removeAttachedImage() {
-        currentAttachedImage = null;
-        document.getElementById('note-image-input').value = ""; // limpa o input
-        updateMediaPreviews();
-    }
-
-    function removeAttachedAudio() {
-        currentAttachedAudio = null;
-        updateMediaPreviews();
-    }
-
-    function updateMediaPreviews() {
-        const area = document.getElementById('media-preview-area');
+    function updateNoteMediaPreviews() {
+        const area = document.getElementById('note-media-preview-area');
         area.innerHTML = '';
-
-        if(currentAttachedImage) {
-            const imgUrl = URL.createObjectURL(currentAttachedImage);
-            area.innerHTML += `
-                <div class="media-box">
-                    <button class="remove-media" onclick="removeAttachedImage()">✕</button>
-                    <img src="${imgUrl}" alt="Preview da imagem">
-                </div>
-            `;
+        if(noteImage) {
+            area.innerHTML += `<div class="media-box"><button class="remove-media" onclick="removeNoteImage()">✕</button><img src="${URL.createObjectURL(noteImage)}"></div>`;
         }
-
-        if(currentAttachedAudio) {
-            const audioUrl = URL.createObjectURL(currentAttachedAudio);
-            area.innerHTML += `
-                <div class="media-box">
-                    <button class="remove-media" onclick="removeAttachedAudio()">✕</button>
-                    <audio src="${audioUrl}" controls></audio>
-                </div>
-            `;
+        if(noteAudio) {
+            area.innerHTML += `<div class="media-box"><button class="remove-media" onclick="removeNoteAudio()">✕</button><audio src="${URL.createObjectURL(noteAudio)}" controls></audio></div>`;
         }
     }
 
     // ==========================================
-    // NOTAS INTEGRADAS (CRUD MODIFICADO PARA MULTIMÍDIA)
+    // ÁUDIO E IMAGEM - LÓGICA DA BIBLIOTECA
+    // ==========================================
+    function handleLibImageSelection(e) { if(e.target.files[0]) { libImage = e.target.files[0]; updateLibMediaPreviews(); } }
+    function removeLibImage() { libImage = null; document.getElementById('lib-image-input').value = ""; updateLibMediaPreviews(); }
+    function removeLibAudio() { libAudio = null; updateLibMediaPreviews(); }
+
+    async function toggleLibAudioRecording() {
+        const btn = document.getElementById('btn-record-lib-audio');
+        if (!isLibRecording) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                libMediaRecorder = new MediaRecorder(stream);
+                libAudioChunks = [];
+                libMediaRecorder.ondataavailable = e => { if(e.data.size > 0) libAudioChunks.push(e.data); };
+                libMediaRecorder.onstop = () => {
+                    libAudio = new Blob(libAudioChunks, { type: 'audio/webm' });
+                    updateLibMediaPreviews();
+                };
+                libMediaRecorder.start();
+                isLibRecording = true;
+                btn.classList.add('recording'); btn.innerHTML = '⏹️ Parar Gravação';
+            } catch (err) { alert("Erro ao acessar microfone."); }
+        } else {
+            libMediaRecorder.stop(); isLibRecording = false;
+            btn.classList.remove('recording'); btn.innerHTML = '🎤 Gravar Áudio';
+        }
+    }
+
+    function updateLibMediaPreviews() {
+        const area = document.getElementById('lib-media-preview-area');
+        area.innerHTML = '';
+        if(libImage) {
+            area.innerHTML += `<div class="media-box"><button class="remove-media" onclick="removeLibImage()">✕</button><img src="${URL.createObjectURL(libImage)}"></div>`;
+        }
+        if(libAudio) {
+            area.innerHTML += `<div class="media-box"><button class="remove-media" onclick="removeLibAudio()">✕</button><audio src="${URL.createObjectURL(libAudio)}" controls></audio></div>`;
+        }
+    }
+
+    // ==========================================
+    // NOTAS INTEGRADAS (CRUD CORRIGIDO)
     // ==========================================
     function saveNoteItem() {
         const title = document.getElementById('note-title').value.trim();
         const content = document.getElementById('note-content').value.trim();
 
-        if (!title && !content && !currentAttachedImage && !currentAttachedAudio) {
-            return alert("A nota não pode ficar totalmente vazia!");
-        }
+        if (!title && !content && !noteImage && !noteAudio) return alert("A nota não pode ficar vazia!");
 
         const noteData = {
             title: title || "Nota sem título",
             content: content,
             linkedItems: [...selectedLibraryIds],
-            imageFile: currentAttachedImage, // Salva o arquivo real no banco
-            audioFile: currentAttachedAudio, // Salva o arquivo real no banco
-            date: new Date().toLocaleString('pt-BR')
+            imageFile: noteImage,
+            audioFile: noteAudio,
+            date: editingNoteDate ? editingNoteDate : new Date().toLocaleString('pt-BR') // Usa a data armazenada ou cria uma nova
         };
 
         const transaction = db.transaction(["notes"], "readwrite");
         const store = transaction.objectStore("notes");
 
+        // Execução direta e síncrona (resolve o erro The transaction has finished)
         if (editingNoteId) {
             noteData.id = editingNoteId;
-            db.transaction("notes").objectStore("notes").get(editingNoteId).onsuccess = (e) => {
-                noteData.date = e.target.result.date; // Mantém a data original
-                store.put(noteData);
-            };
+            store.put(noteData);
         } else {
             store.add(noteData);
         }
@@ -320,10 +331,13 @@
                 document.getElementById('note-title').value = note.title;
                 document.getElementById('note-content').value = note.content;
                 
-                // Carrega os arquivos multimídia salvos de volta para a edição
-                currentAttachedImage = note.imageFile || null;
-                currentAttachedAudio = note.audioFile || null;
-                updateMediaPreviews();
+                // Armazena a data em uma variável global para usar na hora de salvar
+                editingNoteDate = note.date;
+                editingNoteId = note.id;
+
+                noteImage = note.imageFile || null;
+                noteAudio = note.audioFile || null;
+                updateNoteMediaPreviews();
 
                 selectedLibraryIds = [...note.linkedItems];
                 document.getElementById('linked-chips').innerHTML = '';
@@ -331,14 +345,11 @@
                 if(selectedLibraryIds.length > 0) {
                     db.transaction("library").objectStore("library").openCursor().onsuccess = (ev) => {
                         const cursor = ev.target.result;
-                        if(cursor && selectedLibraryIds.includes(cursor.value.id)) {
-                            addLinkChipDOM(cursor.value);
-                        }
+                        if(cursor && selectedLibraryIds.includes(cursor.value.id)) addLinkChipDOM(cursor.value);
                         if(cursor) cursor.continue();
                     }
                 }
 
-                editingNoteId = note.id;
                 document.getElementById('note-form-title').innerText = "✏️ Editando Nota";
                 document.getElementById('btn-save-note').innerText = "Atualizar Nota";
                 document.getElementById('btn-cancel-note').style.display = "block";
@@ -348,15 +359,13 @@
 
     function cancelNoteEdit() {
         editingNoteId = null;
+        editingNoteDate = null;
         document.getElementById('note-title').value = '';
         document.getElementById('note-content').value = '';
         document.getElementById('linked-chips').innerHTML = '';
         selectedLibraryIds = [];
         
-        // Limpa a multimídia
-        currentAttachedImage = null;
-        currentAttachedAudio = null;
-        updateMediaPreviews();
+        noteImage = null; noteAudio = null; updateNoteMediaPreviews();
         
         document.getElementById('note-form-title').innerText = "Criar Nota";
         document.getElementById('btn-save-note').innerText = "Salvar Nota Integrada";
@@ -379,10 +388,8 @@
                     const noteCursor = ev.target.result;
                     if (noteCursor) {
                         const note = noteCursor.value;
-                        
                         if(note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query)) {
-                            const card = document.createElement('div');
-                            card.className = 'note-card';
+                            const card = document.createElement('div'); card.className = 'note-card';
 
                             let chipsHTML = '';
                             if (note.linkedItems && note.linkedItems.length > 0) {
@@ -393,19 +400,9 @@
                                 chipsHTML += `</div>`;
                             }
 
-                            // Renderiza a Imagem salva no banco
-                            let imgHTML = '';
-                            if (note.imageFile) {
-                                const url = URL.createObjectURL(note.imageFile);
-                                imgHTML = `<img src="${url}" style="max-width:100%; border-radius:8px; margin-top:8px;">`;
-                            }
-
-                            // Renderiza o Áudio salvo no banco
-                            let audioHTML = '';
-                            if (note.audioFile) {
-                                const url = URL.createObjectURL(note.audioFile);
-                                audioHTML = `<audio src="${url}" controls style="width:100%; margin-top:8px;"></audio>`;
-                            }
+                            let mediaHTML = '';
+                            if (note.imageFile) mediaHTML += `<img src="${URL.createObjectURL(note.imageFile)}" style="max-width:100%; border-radius:8px; margin-top:8px;">`;
+                            if (note.audioFile) mediaHTML += `<audio src="${URL.createObjectURL(note.audioFile)}" controls style="width:100%; margin-top:8px;"></audio>`;
 
                             card.innerHTML = `
                                 <div class="note-header">
@@ -417,8 +414,7 @@
                                 </div>
                                 <div class="note-title">${note.title}</div>
                                 ${chipsHTML}
-                                ${imgHTML}
-                                ${audioHTML}
+                                ${mediaHTML}
                                 ${note.content ? `<div class="note-body">${note.content}</div>` : ''}
                             `;
                             list.appendChild(card);
@@ -431,7 +427,7 @@
     }
 
     function deleteNoteItem(id) {
-        if(confirm("Tem certeza que deseja excluir esta nota?")) {
+        if(confirm("Deseja excluir esta nota?")) {
             db.transaction(["notes"], "readwrite").objectStore("notes").delete(id).onsuccess = () => {
                 if(editingNoteId === id) cancelNoteEdit();
                 renderNotes();
@@ -441,7 +437,7 @@
 
 
     // ==========================================
-    // MÓDULO: BIBLIOTECA (MANTIDO INTACTO)
+    // BIBLIOTECA (AGORA COM MULTIMÍDIA)
     // ==========================================
     function saveLibraryItem() {
         const title = document.getElementById('lib-title').value.trim();
@@ -452,7 +448,14 @@
 
         const transaction = db.transaction(["library"], "readwrite");
         const store = transaction.objectStore("library");
-        const itemData = { title, category, content };
+        
+        const itemData = { 
+            title, 
+            category, 
+            content,
+            imageFile: libImage,
+            audioFile: libAudio
+        };
 
         if (editingLibId) { itemData.id = editingLibId; store.put(itemData); } 
         else { store.add(itemData); }
@@ -468,6 +471,11 @@
                 document.getElementById('lib-category').value = item.category;
                 document.getElementById('lib-content').value = item.content || '';
                 editingLibId = item.id;
+                
+                libImage = item.imageFile || null;
+                libAudio = item.audioFile || null;
+                updateLibMediaPreviews();
+
                 document.getElementById('lib-form-title').innerText = "✏️ Editando Referência";
                 document.getElementById('btn-save-lib').innerText = "Atualizar Item";
                 document.getElementById('btn-cancel-lib').style.display = "block";
@@ -480,6 +488,9 @@
         document.getElementById('lib-title').value = '';
         document.getElementById('lib-category').value = '';
         document.getElementById('lib-content').value = '';
+        
+        libImage = null; libAudio = null; updateLibMediaPreviews();
+
         document.getElementById('lib-form-title').innerText = "Novo Item de Referência";
         document.getElementById('btn-save-lib').innerText = "Salvar na Biblioteca";
         document.getElementById('btn-cancel-lib').style.display = "none";
@@ -498,16 +509,25 @@
         const query = document.getElementById('search-lib').value.toLowerCase();
         const list = document.getElementById('library-list');
         list.innerHTML = '';
-        db.transaction("library").objectStore("library").openCursor().onsuccess = (e) => {
+        db.transaction("library").objectStore("library").openCursor(null, "prev").onsuccess = (e) => {
             const cursor = e.target.result;
             if (cursor) {
                 const item = cursor.value;
                 if (item.title.toLowerCase().includes(query) || item.category.toLowerCase().includes(query)) {
                     const div = document.createElement('div');
                     div.className = 'lib-item';
+                    
+                    // Indicadores de que há mídia anexada
+                    let mediaIcons = '';
+                    if(item.imageFile) mediaIcons += ' 📷';
+                    if(item.audioFile) mediaIcons += ' 🎤';
+
                     div.innerHTML = `
                         <div class="lib-header">
-                            <div><span style="cursor:pointer;" onclick="openModal(${item.id})">${item.title}</span> <span class="lib-tag">${item.category}</span></div>
+                            <div>
+                                <span style="cursor:pointer; color: var(--primary);" onclick="openModal(${item.id})">${item.title} ${mediaIcons}</span> 
+                                <span class="lib-tag">${item.category}</span>
+                            </div>
                             <div class="actions">
                                 <button class="icon-btn" onclick="editLibraryItem(${item.id})">✏️</button>
                                 <button class="icon-btn" onclick="deleteLibraryItem(${item.id})">🗑️</button>
@@ -523,7 +543,7 @@
     }
 
     // ==========================================
-    // SISTEMA DE TAGS E MODAL (MANTIDO INTACTO)
+    // SISTEMA DE TAGS E MODAL
     // ==========================================
     function showSuggestions(val) {
         const suggContainer = document.getElementById('suggestions');
@@ -566,14 +586,26 @@
             if(item) {
                 document.getElementById('modal-title').innerText = item.title;
                 document.getElementById('modal-category').innerText = item.category;
-                document.getElementById('modal-body').innerText = item.content || "Nenhum conteúdo...";
+                document.getElementById('modal-body').innerText = item.content || "";
+                
+                // Renderiza mídia dentro do Modal
+                const mediaArea = document.getElementById('modal-media');
+                mediaArea.innerHTML = '';
+                if(item.imageFile) mediaArea.innerHTML += `<img src="${URL.createObjectURL(item.imageFile)}" style="max-width:100%; border-radius:8px;">`;
+                if(item.audioFile) mediaArea.innerHTML += `<audio src="${URL.createObjectURL(item.audioFile)}" controls style="width:100%;"></audio>`;
+
                 document.getElementById('info-modal').style.display = 'flex';
             }
         };
     }
 
     function closeModal(event, forceClose = false) {
-        if (forceClose || event.target === document.getElementById('info-modal')) document.getElementById('info-modal').style.display = 'none';
+        if (forceClose || event.target === document.getElementById('info-modal')) {
+            document.getElementById('info-modal').style.display = 'none';
+            // Para o áudio se ele estiver tocando quando o modal fechar
+            const modalMedia = document.getElementById('modal-media');
+            if(modalMedia.querySelector('audio')) modalMedia.querySelector('audio').pause();
+        }
     }
 </script>
 </body>
