@@ -37,12 +37,12 @@
         button {
             background: var(--primary); color: white; border: none; padding: 12px;
             border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; width: 100%;
-            display: flex; justify-content: center; align-items: center; gap: 8px;
+            display: flex; justify-content: center; align-items: center; gap: 5px;
         }
         button:hover { background: var(--primary-hover); }
         .btn-accent { background: var(--accent); }
         .btn-accent:hover { background: #0284c7; }
-        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); font-size: 0.85rem; padding: 10px 5px;}
         .btn-outline:hover { background: #f1f5f9; }
         .recording { animation: pulse 1.5s infinite; background: var(--danger) !important; color: white !important; border-color: var(--danger) !important;}
         
@@ -95,12 +95,14 @@
             <input type="text" id="lib-title" placeholder="Ex: Algoritmo SM-2">
             <input type="text" id="lib-category" placeholder="Categoria (Ex: Programação)">
             
-            <!-- Botões de Multimídia da BIBLIOTECA -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <!-- ATENÇÃO: Sem o capture="environment" para permitir abrir a galeria -->
+            <!-- Botões de Multimídia da BIBLIOTECA (Agrupados em 3) -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
                 <input type="file" id="lib-image-input" accept="image/*" style="display: none;" onchange="handleLibImageSelection(event)">
-                <button class="btn-outline" onclick="document.getElementById('lib-image-input').click()">📷 Foto / Galeria</button>
-                <button class="btn-outline" id="btn-record-lib-audio" onclick="toggleLibAudioRecording()">🎤 Gravar Áudio</button>
+                <input type="file" id="lib-camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handleLibImageSelection(event)">
+                
+                <button class="btn-outline" onclick="document.getElementById('lib-image-input').click()">🖼️ Galeria</button>
+                <button class="btn-outline" onclick="document.getElementById('lib-camera-input').click()">📷 Câmera</button>
+                <button class="btn-outline" id="btn-record-lib-audio" onclick="toggleLibAudioRecording()">🎤 Áudio</button>
             </div>
             
             <div class="media-preview-container" id="lib-media-preview-area"></div>
@@ -131,12 +133,14 @@
                 <div class="chips-container" id="linked-chips"></div>
             </div>
 
-            <!-- Botões de Multimídia das NOTAS -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <!-- ATENÇÃO: Sem o capture="environment" para permitir abrir a galeria -->
+            <!-- Botões de Multimídia das NOTAS (Agrupados em 3) -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
                 <input type="file" id="note-image-input" accept="image/*" style="display: none;" onchange="handleNoteImageSelection(event)">
-                <button class="btn-outline" onclick="document.getElementById('note-image-input').click()">📷 Foto / Galeria</button>
-                <button class="btn-outline" id="btn-record-note-audio" onclick="toggleNoteAudioRecording()">🎤 Gravar Áudio</button>
+                <input type="file" id="note-camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handleNoteImageSelection(event)">
+                
+                <button class="btn-outline" onclick="document.getElementById('note-image-input').click()">🖼️ Galeria</button>
+                <button class="btn-outline" onclick="document.getElementById('note-camera-input').click()">📷 Câmera</button>
+                <button class="btn-outline" id="btn-record-note-audio" onclick="toggleNoteAudioRecording()">🎤 Áudio</button>
             </div>
 
             <div class="media-preview-container" id="note-media-preview-area"></div>
@@ -164,7 +168,6 @@
             </div>
             <button class="close-btn" onclick="closeModal(null, true)">✕</button>
         </div>
-        <!-- Área para mídia da biblioteca no modal -->
         <div id="modal-media" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;"></div>
         <div class="modal-body" id="modal-body" style="white-space: pre-wrap; font-size: 1rem; color: #334155;">Conteúdo aqui...</div>
     </div>
@@ -173,11 +176,10 @@
 <script>
     let db;
     
-    // Controles de Edição (Corrigido para armazenar as datas)
+    // Controles de Edição
     let editingLibId = null;
     let editingNoteId = null;
-    let editingNoteDate = null; // Guardará a data para evitar o erro de Transação Inativa
-
+    let editingNoteDate = null; 
     let selectedLibraryIds = [];
 
     // Variáveis Multimídia - NOTAS
@@ -213,7 +215,14 @@
     // ÁUDIO E IMAGEM - LÓGICA DAS NOTAS
     // ==========================================
     function handleNoteImageSelection(e) { if(e.target.files[0]) { noteImage = e.target.files[0]; updateNoteMediaPreviews(); } }
-    function removeNoteImage() { noteImage = null; document.getElementById('note-image-input').value = ""; updateNoteMediaPreviews(); }
+    
+    function removeNoteImage() { 
+        noteImage = null; 
+        document.getElementById('note-image-input').value = ""; // Limpa a galeria
+        document.getElementById('note-camera-input').value = ""; // Limpa a câmera
+        updateNoteMediaPreviews(); 
+    }
+    
     function removeNoteAudio() { noteAudio = null; updateNoteMediaPreviews(); }
 
     async function toggleNoteAudioRecording() {
@@ -230,11 +239,11 @@
                 };
                 noteMediaRecorder.start();
                 isNoteRecording = true;
-                btn.classList.add('recording'); btn.innerHTML = '⏹️ Parar Gravação';
+                btn.classList.add('recording'); btn.innerHTML = '⏹️ Parar';
             } catch (err) { alert("Erro ao acessar microfone."); }
         } else {
             noteMediaRecorder.stop(); isNoteRecording = false;
-            btn.classList.remove('recording'); btn.innerHTML = '🎤 Gravar Áudio';
+            btn.classList.remove('recording'); btn.innerHTML = '🎤 Áudio';
         }
     }
 
@@ -253,7 +262,14 @@
     // ÁUDIO E IMAGEM - LÓGICA DA BIBLIOTECA
     // ==========================================
     function handleLibImageSelection(e) { if(e.target.files[0]) { libImage = e.target.files[0]; updateLibMediaPreviews(); } }
-    function removeLibImage() { libImage = null; document.getElementById('lib-image-input').value = ""; updateLibMediaPreviews(); }
+    
+    function removeLibImage() { 
+        libImage = null; 
+        document.getElementById('lib-image-input').value = ""; 
+        document.getElementById('lib-camera-input').value = ""; 
+        updateLibMediaPreviews(); 
+    }
+    
     function removeLibAudio() { libAudio = null; updateLibMediaPreviews(); }
 
     async function toggleLibAudioRecording() {
@@ -270,11 +286,11 @@
                 };
                 libMediaRecorder.start();
                 isLibRecording = true;
-                btn.classList.add('recording'); btn.innerHTML = '⏹️ Parar Gravação';
+                btn.classList.add('recording'); btn.innerHTML = '⏹️ Parar';
             } catch (err) { alert("Erro ao acessar microfone."); }
         } else {
             libMediaRecorder.stop(); isLibRecording = false;
-            btn.classList.remove('recording'); btn.innerHTML = '🎤 Gravar Áudio';
+            btn.classList.remove('recording'); btn.innerHTML = '🎤 Áudio';
         }
     }
 
@@ -290,7 +306,7 @@
     }
 
     // ==========================================
-    // NOTAS INTEGRADAS (CRUD CORRIGIDO)
+    // NOTAS INTEGRADAS (CRUD)
     // ==========================================
     function saveNoteItem() {
         const title = document.getElementById('note-title').value.trim();
@@ -304,13 +320,12 @@
             linkedItems: [...selectedLibraryIds],
             imageFile: noteImage,
             audioFile: noteAudio,
-            date: editingNoteDate ? editingNoteDate : new Date().toLocaleString('pt-BR') // Usa a data armazenada ou cria uma nova
+            date: editingNoteDate ? editingNoteDate : new Date().toLocaleString('pt-BR')
         };
 
         const transaction = db.transaction(["notes"], "readwrite");
         const store = transaction.objectStore("notes");
 
-        // Execução direta e síncrona (resolve o erro The transaction has finished)
         if (editingNoteId) {
             noteData.id = editingNoteId;
             store.put(noteData);
@@ -331,7 +346,6 @@
                 document.getElementById('note-title').value = note.title;
                 document.getElementById('note-content').value = note.content;
                 
-                // Armazena a data em uma variável global para usar na hora de salvar
                 editingNoteDate = note.date;
                 editingNoteId = note.id;
 
@@ -365,7 +379,10 @@
         document.getElementById('linked-chips').innerHTML = '';
         selectedLibraryIds = [];
         
-        noteImage = null; noteAudio = null; updateNoteMediaPreviews();
+        noteImage = null; noteAudio = null; 
+        document.getElementById('note-image-input').value = "";
+        document.getElementById('note-camera-input').value = "";
+        updateNoteMediaPreviews();
         
         document.getElementById('note-form-title').innerText = "Criar Nota";
         document.getElementById('btn-save-note').innerText = "Salvar Nota Integrada";
@@ -435,9 +452,8 @@
         }
     }
 
-
     // ==========================================
-    // BIBLIOTECA (AGORA COM MULTIMÍDIA)
+    // BIBLIOTECA (CRUD)
     // ==========================================
     function saveLibraryItem() {
         const title = document.getElementById('lib-title').value.trim();
@@ -450,9 +466,7 @@
         const store = transaction.objectStore("library");
         
         const itemData = { 
-            title, 
-            category, 
-            content,
+            title, category, content,
             imageFile: libImage,
             audioFile: libAudio
         };
@@ -489,7 +503,10 @@
         document.getElementById('lib-category').value = '';
         document.getElementById('lib-content').value = '';
         
-        libImage = null; libAudio = null; updateLibMediaPreviews();
+        libImage = null; libAudio = null; 
+        document.getElementById('lib-image-input').value = "";
+        document.getElementById('lib-camera-input').value = "";
+        updateLibMediaPreviews();
 
         document.getElementById('lib-form-title').innerText = "Novo Item de Referência";
         document.getElementById('btn-save-lib').innerText = "Salvar na Biblioteca";
@@ -517,7 +534,6 @@
                     const div = document.createElement('div');
                     div.className = 'lib-item';
                     
-                    // Indicadores de que há mídia anexada
                     let mediaIcons = '';
                     if(item.imageFile) mediaIcons += ' 📷';
                     if(item.audioFile) mediaIcons += ' 🎤';
@@ -588,7 +604,6 @@
                 document.getElementById('modal-category').innerText = item.category;
                 document.getElementById('modal-body').innerText = item.content || "";
                 
-                // Renderiza mídia dentro do Modal
                 const mediaArea = document.getElementById('modal-media');
                 mediaArea.innerHTML = '';
                 if(item.imageFile) mediaArea.innerHTML += `<img src="${URL.createObjectURL(item.imageFile)}" style="max-width:100%; border-radius:8px;">`;
@@ -602,7 +617,6 @@
     function closeModal(event, forceClose = false) {
         if (forceClose || event.target === document.getElementById('info-modal')) {
             document.getElementById('info-modal').style.display = 'none';
-            // Para o áudio se ele estiver tocando quando o modal fechar
             const modalMedia = document.getElementById('modal-media');
             if(modalMedia.querySelector('audio')) modalMedia.querySelector('audio').pause();
         }
