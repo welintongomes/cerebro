@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Segundo Cérebro: Conexões & Multimídia</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc; --card-bg: #ffffff;
+            --primary: #6366f1; --primary-hover: #4f46e5;
+            --accent: #0ea5e9; --text: #1e293b;
+            --text-muted: #64748b; --border: #e2e8f0;
+            --danger: #ef4444; --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text); padding: 20px; display: flex; justify-content: center; }
+        
+        .app-layout { width: 100%; max-width: 1300px; display: grid; grid-template-columns: 400px 1fr; gap: 25px; }
+        @media (max-width: 900px) { .app-layout { grid-template-columns: 1fr; } }
+
+        .panel {
+            background: var(--card-bg); padding: 24px; border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid var(--border);
+            display: flex; flex-direction: column; gap: 15px;
+        }
+
+        h2 { font-size: 1.3rem; color: #0f172a; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+        label { font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        input, textarea, select {
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+            font-size: 0.95rem; background: #f8fafc; transition: all 0.2s;
+        }
+        input:focus, textarea:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        
+        button {
+            background: var(--primary); color: white; border: none; padding: 12px;
+            border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; width: 100%;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        button:hover { background: var(--primary-hover); }
+        .btn-accent { background: var(--accent); }
+        .btn-accent:hover { background: #0284c7; }
+        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: #f1f5f9; }
+        .btn-danger { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
+        .btn-danger:hover { background: #fecaca; }
+        .recording { animation: pulse 1.5s infinite; background: var(--danger) !important; color: white !important; border-color: var(--danger) !important;}
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        .actions { display: flex; gap: 8px; }
+        .icon-btn { background: #f1f5f9; color: var(--text); border: none; padding: 6px; border-radius: 6px; cursor: pointer; width: auto; font-size: 0.9rem;}
+        .icon-btn:hover { background: #e2e8f0; }
+
+        .scroll-list { flex-grow: 1; overflow-y: auto; max-height: 500px; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
+        
+        .lib-item { background: #f1f5f9; padding: 12px; border-radius: 8px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 8px; border: 1px solid transparent; }
+        .lib-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold;}
+        .lib-tag { font-size: 0.75rem; background: var(--accent); color: white; padding: 2px 6px; border-radius: 4px; font-weight: normal;}
+
+        .chips-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+        .chip { background: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+        .chip.clickable { cursor: pointer; transition: 0.2s; }
+        .chip.clickable:hover { background: #c7d2fe; transform: translateY(-1px); }
+        .chip remove { cursor: pointer; font-weight: bold; color: var(--danger); }
+
+        .note-card { background: #fff; border: 1px solid var(--border); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.01); }
+        .note-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); align-items: center;}
+        .note-title { font-weight: 700; font-size: 1.1rem; color: #0f172a; }
+        .note-body { font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap; color: #334155; }
+        
+        /* Media Previews nas Notas e Formulário */
+        .media-preview-container { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px; }
+        .media-box { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: #f8fafc; padding: 5px; display: flex; align-items: center; justify-content: center;}
+        .media-box img { max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 4px; }
+        .media-box audio { height: 40px; width: 250px; }
+        .remove-media { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; border: none; cursor: pointer; z-index: 10;}
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(2px); }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .modal-header { font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a;}
+        .close-btn { cursor: pointer; background: #f1f5f9; border: none; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="app-layout">
+    
+    <!-- PAINEL DA BIBLIOTECA -->
+    <div class="panel">
+        <h2>📚 Biblioteca de Referências</h2>
+        <div style="display: flex; flex-direction: column; gap: 10px; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+            <label id="lib-form-title">Novo Item de Referência</label>
+            <input type="text" id="lib-title" placeholder="Ex: Algoritmo SM-2">
+            <input type="text" id="lib-category" placeholder="Categoria (Ex: Programação)">
+            <textarea id="lib-content" rows="3" placeholder="Descrição ou código..."></textarea>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveLibraryItem()" id="btn-save-lib" class="btn-accent">Salvar na Biblioteca</button>
+                <button onclick="cancelLibEdit()" id="btn-cancel-lib" style="display: none; background: #94a3b8; width: auto;">Cancelar</button>
+            </div>
+        </div>
+        <input type="text" id="search-lib" placeholder="🔍 Buscar na biblioteca..." oninput="renderLibrary()" style="margin-top: 10px;">
+        <div class="scroll-list" id="library-list"></div>
+    </div>
+
+    <!-- PAINEL DE NOTAS INTEGRADAS -->
+    <div class="panel">
+        <h2>📝 Suas Notas</h2>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+            <label id="note-form-title">Criar Nota</label>
+            <input type="text" id="note-title" placeholder="Ex: Resumo da aula">
+
+            <!-- Vínculo com a Biblioteca -->
+            <div style="position: relative;">
+                <label>Vincular Biblioteca</label>
+                <input type="text" id="link-library-input" placeholder="Buscar e anexar um item..." oninput="showSuggestions(this.value)">
+                <div id="suggestions" class="autocomplete-suggestions" style="display: none; position:absolute;"></div>
+                <div class="chips-container" id="linked-chips"></div>
+            </div>
+
+            <!-- Botões de Multimídia -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <!-- Input de arquivo invisível (Camera/Galeria) -->
+                <input type="file" id="note-image-input" accept="image/*" capture="environment" style="display: none;" onchange="handleImageSelection(event)">
+                <button class="btn-outline" onclick="document.getElementById('note-image-input').click()">📷 Foto / Galeria</button>
+                
+                <button class="btn-outline" id="btn-record-audio" onclick="toggleAudioRecording()">🎤 Gravar Áudio</button>
+            </div>
+
+            <!-- Área de Preview dos Arquivos Anexados -->
+            <div class="media-preview-container" id="media-preview-area">
+                <!-- A imagem e o áudio aparecerão aqui antes de salvar -->
+            </div>
+
+            <textarea id="note-content" rows="4" placeholder="Suas anotações textuais..."></textarea>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveNoteItem()" id="btn-save-note">Salvar Nota Integrada</button>
+                <button onclick="cancelNoteEdit()" id="btn-cancel-note" style="display: none; background: #94a3b8; width: auto;">Cancelar</button>
+            </div>
+        </div>
+
+        <input type="text" id="search-notes" placeholder="🔍 Pesquisar em todas as notas..." oninput="renderNotes()" style="margin-top: 10px;">
+        <div class="scroll-list" id="notes-list"></div>
+    </div>
+</div>
+
+<!-- MODAL PARA EXIBIR CONTEÚDO DA BIBLIOTECA -->
+<div class="modal-overlay" id="info-modal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <span id="modal-title">Título</span>
+                <span id="modal-category" class="lib-tag" style="width: fit-content;">Categoria</span>
+            </div>
+            <button class="close-btn" onclick="closeModal(null, true)">✕</button>
+        </div>
+        <div class="modal-body" id="modal-body" style="white-space: pre-wrap; font-size: 1rem; color: #334155;">Conteúdo aqui...</div>
+    </div>
+</div>
+
+<script>
+    let db;
+    let selectedLibraryIds = [];
+    let editingLibId = null;
+    let editingNoteId = null;
+
+    // --- VARIÁVEIS PARA MULTIMÍDIA ---
+    let currentAttachedImage = null; // Guardará o File (Blob) da imagem
+    let currentAttachedAudio = null; // Guardará o Blob do áudio
+    
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    // --- ABERTURA DO BANCO DE DADOS ---
+    const request = indexedDB.open("ConnectedKnowledgeDB_v2", 1);
+    
+    request.onsuccess = (e) => {
+        db = e.target.result;
+        renderLibrary();
+        renderNotes();
+    };
+
+    request.onupgradeneeded = (e) => {
+        let dbInstance = e.target.result;
+        dbInstance.createObjectStore("library", { keyPath: "id", autoIncrement: true });
+        dbInstance.createObjectStore("notes", { keyPath: "id", autoIncrement: true });
+    };
+
+    // ==========================================
+    // ÁUDIO E IMAGEM (LÓGICA)
+    // ==========================================
+    
+    function handleImageSelection(event) {
+        const file = event.target.files[0];
+        if(file) {
+            currentAttachedImage = file;
+            updateMediaPreviews();
+        }
+    }
+
+    async function toggleAudioRecording() {
+        const btn = document.getElementById('btn-record-audio');
+        
+        if (!isRecording) {
+            try {
+                // Pede permissão e inicia a gravação
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
+                
+                mediaRecorder.onstop = () => {
+                    // Quando para de gravar, junta os pedaços num arquivo Blob
+                    currentAttachedAudio = new Blob(audioChunks, { type: 'audio/webm' });
+                    updateMediaPreviews();
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                btn.classList.add('recording');
+                btn.innerHTML = '⏹️ Parar Gravação';
+            } catch (err) {
+                alert("Erro ao acessar microfone. Certifique-se de dar permissão e estar usando um servidor local (HTTPS ou Localhost).");
+            }
+        } else {
+            // Para a gravação
+            mediaRecorder.stop();
+            isRecording = false;
+            btn.classList.remove('recording');
+            btn.innerHTML = '🎤 Gravar Áudio';
+        }
+    }
+
+    function removeAttachedImage() {
+        currentAttachedImage = null;
+        document.getElementById('note-image-input').value = ""; // limpa o input
+        updateMediaPreviews();
+    }
+
+    function removeAttachedAudio() {
+        currentAttachedAudio = null;
+        updateMediaPreviews();
+    }
+
+    function updateMediaPreviews() {
+        const area = document.getElementById('media-preview-area');
+        area.innerHTML = '';
+
+        if(currentAttachedImage) {
+            const imgUrl = URL.createObjectURL(currentAttachedImage);
+            area.innerHTML += `
+                <div class="media-box">
+                    <button class="remove-media" onclick="removeAttachedImage()">✕</button>
+                    <img src="${imgUrl}" alt="Preview da imagem">
+                </div>
+            `;
+        }
+
+        if(currentAttachedAudio) {
+            const audioUrl = URL.createObjectURL(currentAttachedAudio);
+            area.innerHTML += `
+                <div class="media-box">
+                    <button class="remove-media" onclick="removeAttachedAudio()">✕</button>
+                    <audio src="${audioUrl}" controls></audio>
+                </div>
+            `;
+        }
+    }
+
+    // ==========================================
+    // NOTAS INTEGRADAS (CRUD MODIFICADO PARA MULTIMÍDIA)
+    // ==========================================
+    function saveNoteItem() {
+        const title = document.getElementById('note-title').value.trim();
+        const content = document.getElementById('note-content').value.trim();
+
+        if (!title && !content && !currentAttachedImage && !currentAttachedAudio) {
+            return alert("A nota não pode ficar totalmente vazia!");
+        }
+
+        const noteData = {
+            title: title || "Nota sem título",
+            content: content,
+            linkedItems: [...selectedLibraryIds],
+            imageFile: currentAttachedImage, // Salva o arquivo real no banco
+            audioFile: currentAttachedAudio, // Salva o arquivo real no banco
+            date: new Date().toLocaleString('pt-BR')
+        };
+
+        const transaction = db.transaction(["notes"], "readwrite");
+        const store = transaction.objectStore("notes");
+
+        if (editingNoteId) {
+            noteData.id = editingNoteId;
+            db.transaction("notes").objectStore("notes").get(editingNoteId).onsuccess = (e) => {
+                noteData.date = e.target.result.date; // Mantém a data original
+                store.put(noteData);
+            };
+        } else {
+            store.add(noteData);
+        }
+
+        transaction.oncomplete = () => {
+            cancelNoteEdit();
+            renderNotes();
+        };
+    }
+
+    function editNoteItem(id) {
+        db.transaction("notes").objectStore("notes").get(id).onsuccess = (e) => {
+            const note = e.target.result;
+            if(note) {
+                document.getElementById('note-title').value = note.title;
+                document.getElementById('note-content').value = note.content;
+                
+                // Carrega os arquivos multimídia salvos de volta para a edição
+                currentAttachedImage = note.imageFile || null;
+                currentAttachedAudio = note.audioFile || null;
+                updateMediaPreviews();
+
+                selectedLibraryIds = [...note.linkedItems];
+                document.getElementById('linked-chips').innerHTML = '';
+                
+                if(selectedLibraryIds.length > 0) {
+                    db.transaction("library").objectStore("library").openCursor().onsuccess = (ev) => {
+                        const cursor = ev.target.result;
+                        if(cursor && selectedLibraryIds.includes(cursor.value.id)) {
+                            addLinkChipDOM(cursor.value);
+                        }
+                        if(cursor) cursor.continue();
+                    }
+                }
+
+                editingNoteId = note.id;
+                document.getElementById('note-form-title').innerText = "✏️ Editando Nota";
+                document.getElementById('btn-save-note').innerText = "Atualizar Nota";
+                document.getElementById('btn-cancel-note').style.display = "block";
+            }
+        };
+    }
+
+    function cancelNoteEdit() {
+        editingNoteId = null;
+        document.getElementById('note-title').value = '';
+        document.getElementById('note-content').value = '';
+        document.getElementById('linked-chips').innerHTML = '';
+        selectedLibraryIds = [];
+        
+        // Limpa a multimídia
+        currentAttachedImage = null;
+        currentAttachedAudio = null;
+        updateMediaPreviews();
+        
+        document.getElementById('note-form-title').innerText = "Criar Nota";
+        document.getElementById('btn-save-note').innerText = "Salvar Nota Integrada";
+        document.getElementById('btn-cancel-note').style.display = "none";
+    }
+
+    function renderNotes() {
+        const query = document.getElementById('search-notes').value.toLowerCase();
+        const list = document.getElementById('notes-list');
+        list.innerHTML = '';
+
+        let libraryMap = {};
+        db.transaction("library").objectStore("library").openCursor().onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+                libraryMap[cursor.value.id] = cursor.value.title;
+                cursor.continue();
+            } else {
+                db.transaction("notes").objectStore("notes").openCursor(null, "prev").onsuccess = (ev) => {
+                    const noteCursor = ev.target.result;
+                    if (noteCursor) {
+                        const note = noteCursor.value;
+                        
+                        if(note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query)) {
+                            const card = document.createElement('div');
+                            card.className = 'note-card';
+
+                            let chipsHTML = '';
+                            if (note.linkedItems && note.linkedItems.length > 0) {
+                                chipsHTML = `<div class="chips-container">`;
+                                note.linkedItems.forEach(id => {
+                                    if (libraryMap[id]) chipsHTML += `<span class="chip clickable" onclick="openModal(${id})">🔗 ${libraryMap[id]}</span>`;
+                                });
+                                chipsHTML += `</div>`;
+                            }
+
+                            // Renderiza a Imagem salva no banco
+                            let imgHTML = '';
+                            if (note.imageFile) {
+                                const url = URL.createObjectURL(note.imageFile);
+                                imgHTML = `<img src="${url}" style="max-width:100%; border-radius:8px; margin-top:8px;">`;
+                            }
+
+                            // Renderiza o Áudio salvo no banco
+                            let audioHTML = '';
+                            if (note.audioFile) {
+                                const url = URL.createObjectURL(note.audioFile);
+                                audioHTML = `<audio src="${url}" controls style="width:100%; margin-top:8px;"></audio>`;
+                            }
+
+                            card.innerHTML = `
+                                <div class="note-header">
+                                    <span>📅 ${note.date}</span>
+                                    <div class="actions">
+                                        <button class="icon-btn" onclick="editNoteItem(${note.id})">✏️</button>
+                                        <button class="icon-btn" onclick="deleteNoteItem(${note.id})">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="note-title">${note.title}</div>
+                                ${chipsHTML}
+                                ${imgHTML}
+                                ${audioHTML}
+                                ${note.content ? `<div class="note-body">${note.content}</div>` : ''}
+                            `;
+                            list.appendChild(card);
+                        }
+                        noteCursor.continue();
+                    }
+                };
+            }
+        };
+    }
+
+    function deleteNoteItem(id) {
+        if(confirm("Tem certeza que deseja excluir esta nota?")) {
+            db.transaction(["notes"], "readwrite").objectStore("notes").delete(id).onsuccess = () => {
+                if(editingNoteId === id) cancelNoteEdit();
+                renderNotes();
+            };
+        }
+    }
+
+
+    // ==========================================
+    // MÓDULO: BIBLIOTECA (MANTIDO INTACTO)
+    // ==========================================
+    function saveLibraryItem() {
+        const title = document.getElementById('lib-title').value.trim();
+        const category = document.getElementById('lib-category').value.trim() || 'Geral';
+        const content = document.getElementById('lib-content').value.trim();
+
+        if (!title) return alert("Insira um título para a biblioteca!");
+
+        const transaction = db.transaction(["library"], "readwrite");
+        const store = transaction.objectStore("library");
+        const itemData = { title, category, content };
+
+        if (editingLibId) { itemData.id = editingLibId; store.put(itemData); } 
+        else { store.add(itemData); }
+
+        transaction.oncomplete = () => { cancelLibEdit(); renderLibrary(); renderNotes(); };
+    }
+
+    function editLibraryItem(id) {
+        db.transaction("library").objectStore("library").get(id).onsuccess = (e) => {
+            const item = e.target.result;
+            if(item) {
+                document.getElementById('lib-title').value = item.title;
+                document.getElementById('lib-category').value = item.category;
+                document.getElementById('lib-content').value = item.content || '';
+                editingLibId = item.id;
+                document.getElementById('lib-form-title').innerText = "✏️ Editando Referência";
+                document.getElementById('btn-save-lib').innerText = "Atualizar Item";
+                document.getElementById('btn-cancel-lib').style.display = "block";
+            }
+        };
+    }
+
+    function cancelLibEdit() {
+        editingLibId = null;
+        document.getElementById('lib-title').value = '';
+        document.getElementById('lib-category').value = '';
+        document.getElementById('lib-content').value = '';
+        document.getElementById('lib-form-title').innerText = "Novo Item de Referência";
+        document.getElementById('btn-save-lib').innerText = "Salvar na Biblioteca";
+        document.getElementById('btn-cancel-lib').style.display = "none";
+    }
+
+    function deleteLibraryItem(id) {
+        if(confirm("Deseja excluir este item? Notas vinculadas perderão essa tag.")) {
+            db.transaction(["library"], "readwrite").objectStore("library").delete(id).onsuccess = () => {
+                if(editingLibId === id) cancelLibEdit();
+                renderLibrary(); renderNotes();
+            };
+        }
+    }
+
+    function renderLibrary() {
+        const query = document.getElementById('search-lib').value.toLowerCase();
+        const list = document.getElementById('library-list');
+        list.innerHTML = '';
+        db.transaction("library").objectStore("library").openCursor().onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+                const item = cursor.value;
+                if (item.title.toLowerCase().includes(query) || item.category.toLowerCase().includes(query)) {
+                    const div = document.createElement('div');
+                    div.className = 'lib-item';
+                    div.innerHTML = `
+                        <div class="lib-header">
+                            <div><span style="cursor:pointer;" onclick="openModal(${item.id})">${item.title}</span> <span class="lib-tag">${item.category}</span></div>
+                            <div class="actions">
+                                <button class="icon-btn" onclick="editLibraryItem(${item.id})">✏️</button>
+                                <button class="icon-btn" onclick="deleteLibraryItem(${item.id})">🗑️</button>
+                            </div>
+                        </div>
+                        <div style="font-size:0.85rem; color:#64748b;">${item.content ? item.content.substring(0, 60) + '...' : 'Sem descrição'}</div>
+                    `;
+                    list.appendChild(div);
+                }
+                cursor.continue();
+            }
+        };
+    }
+
+    // ==========================================
+    // SISTEMA DE TAGS E MODAL (MANTIDO INTACTO)
+    // ==========================================
+    function showSuggestions(val) {
+        const suggContainer = document.getElementById('suggestions');
+        if (!val.trim()) { suggContainer.style.display = 'none'; return; }
+        suggContainer.innerHTML = ''; suggContainer.style.display = 'block';
+
+        db.transaction("library").objectStore("library").openCursor().onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+                const item = cursor.value;
+                if (item.title.toLowerCase().includes(val.toLowerCase()) && !selectedLibraryIds.includes(item.id)) {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item'; div.innerText = `${item.title} (${item.category})`;
+                    div.onclick = () => {
+                        selectedLibraryIds.push(item.id); addLinkChipDOM(item);
+                        suggContainer.style.display = 'none'; document.getElementById('link-library-input').value = '';
+                    };
+                    suggContainer.appendChild(div);
+                }
+                cursor.continue();
+            }
+        };
+    }
+
+    function addLinkChipDOM(item) {
+        const container = document.getElementById('linked-chips');
+        const chip = document.createElement('div'); chip.className = 'chip'; chip.id = `chip-${item.id}`;
+        chip.innerHTML = `${item.title} <remove onclick="removeLinkChip(${item.id})">&times;</remove>`;
+        container.appendChild(chip);
+    }
+
+    function removeLinkChip(id) {
+        selectedLibraryIds = selectedLibraryIds.filter(i => i !== id);
+        document.getElementById(`chip-${id}`).remove();
+    }
+
+    function openModal(libId) {
+        db.transaction("library").objectStore("library").get(libId).onsuccess = (e) => {
+            const item = e.target.result;
+            if(item) {
+                document.getElementById('modal-title').innerText = item.title;
+                document.getElementById('modal-category').innerText = item.category;
+                document.getElementById('modal-body').innerText = item.content || "Nenhum conteúdo...";
+                document.getElementById('info-modal').style.display = 'flex';
+            }
+        };
+    }
+
+    function closeModal(event, forceClose = false) {
+        if (forceClose || event.target === document.getElementById('info-modal')) document.getElementById('info-modal').style.display = 'none';
+    }
+</script>
+</body>
+</html>
