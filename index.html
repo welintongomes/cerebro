@@ -14,22 +14,22 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text); padding: 20px; display: flex; justify-content: center; }
+        body { background-color: var(--bg-color); color: var(--text); padding: 6px; display: flex; justify-content: center; }
         
         .app-layout { width: 100%; max-width: 1300px; display: grid; grid-template-columns: 400px 1fr; gap: 25px; }
         @media (max-width: 900px) { .app-layout { grid-template-columns: 1fr; } }
 
         .panel {
-            background: var(--card-bg); padding: 24px; border-radius: 16px;
+            background: var(--card-bg); padding: 5px; border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid var(--border);
             display: flex; flex-direction: column; gap: 15px;
         }
 
-        h2 { font-size: 1.3rem; color: #0f172a; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+        h2 { font-size: 1.3rem; text-align: center; color: #0f172a; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
         label { font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
         
         input, textarea, select {
-            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+            width: 100%; padding: 12px 12px 12px 35px; white-space: pre; border: 1px solid var(--border); border-radius: 8px;
             font-size: 0.95rem; background: #f8fafc; transition: all 0.2s;
         }
         input:focus, textarea:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
@@ -107,6 +107,24 @@
         .suggestion-item:hover { background: #f1f5f9; }
         
         .sentinel { height: 20px; width: 100%; }
+        .search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.clear-btn {
+    position: absolute;
+    left: 10px;
+    cursor: pointer;
+    color: #94a3b8;
+    font-weight: bold;
+    font-size: 1.2rem;
+    display: none; /* Escondido por padrão */
+    user-select: none;
+}
+
+.clear-btn:hover { color: #ef4444; }
     </style>
 </head>
 <body>
@@ -141,8 +159,10 @@
             </div>
         </details>
 
-        <input type="text" id="search-lib" placeholder="🔍 Buscar na biblioteca..." oninput="triggerSearchLib()" style="margin-top: 10px;">
-        
+        <div class="search-wrapper">
+    <input type="text" id="search-lib" placeholder="🔍 Buscar na biblioteca..." oninput="handleSearchClear(this, 'search-lib', triggerSearchLib)" style="margin-top: 10px; padding-right: 30px;">
+    <span class="clear-btn" onclick="clearSearch('search-lib', triggerSearchLib)">✕</span>
+</div>
         <div class="scroll-list" id="library-list">
             <div id="lib-container"></div>
             <!-- Sentinela para o Infinite Scroll -->
@@ -151,51 +171,53 @@
     </div>
 
     <!-- PAINEL DE NOTAS INTEGRADAS -->
-<!-- Mantenha o ID 'panel-notes' para o seu CSS de layout -->
-<div class="panel">
-    <!-- Agora o detalhes envolve apenas o conteúdo, mantendo o H2 fora para ficar fixo -->
-    <h2>📝 Suas Notas (Texto Rico)</h2>
-    
-    <details class="panel-accordion">
-        <summary style="cursor: pointer; padding: 10px; background: #f1f5f9; border-radius: 8px; margin-bottom: 10px;">
-            Expandir / Recolher Painel
-        </summary>
-        
-        <div class="panel-content">
-            <!-- Formulário Recolhível (Formulário dentro da nota) -->
-            <details id="note-form-accordion" class="form-accordion">
-                <summary id="note-form-title">➕ Criar Nova Nota</summary>
-                <div class="form-content">
-                    <input type="text" id="note-title" placeholder="Ex: Conserto da máquina">
-
-                    <div style="position: relative;">
-                        <label>Vincular Biblioteca</label>
-                        <input type="text" id="link-library-input" placeholder="Buscar e anexar..." oninput="showSuggestions(this.value)">
-                        <div id="suggestions" class="autocomplete-suggestions" style="display: none; position:absolute;"></div>
-                    </div>
-
-                    <textarea id="note-content" rows="6" placeholder="Escreva aqui..."></textarea>
-
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-                        <input type="file" id="note-image-input" accept="image/*" style="display: none;" onchange="handleNoteImageSelection(event)">
-                        <input type="file" id="note-camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handleNoteImageSelection(event)">
-                        <button class="btn-outline" onclick="document.getElementById('note-image-input').click()">🖼️ Galeria</button>
-                        <button class="btn-outline" onclick="document.getElementById('note-camera-input').click()">📷 Câmera</button>
-                        <button class="btn-outline" id="btn-record-note-audio" onclick="toggleNoteAudioRecording()">🎤 Áudio</button>
-                    </div>
-
-                    <div class="media-preview-container" id="note-media-preview-area"></div>
-                    
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="saveNoteItem()" id="btn-save-note">Salvar Nota</button>
-                        <button onclick="cancelNoteEdit()" id="btn-cancel-note" style="display: none; background: #94a3b8; width: auto;">Cancelar</button>
-                    </div>
-                </div>
-            </details>
-
-            <!-- AQUI: IDs originais preservados para que a pesquisa funcione -->
-            <input type="text" id="search-notes" placeholder="🔍 Pesquisar em todas as notas..." oninput="triggerSearchNotes()" style="margin-top: 10px;">
+        <!-- Mantenha o ID 'panel-notes' para o seu CSS de layout -->
+        <div class="panel">
+            <!-- Agora o detalhes envolve apenas o conteúdo, mantendo o H2 fora para ficar fixo -->
+            <h2>📝 Suas Notas (Texto Rico)</h2>
             
+            <details class="panel-accordion">
+                <summary style="cursor: pointer; padding: 10px; background: #f1f5f9; border-radius: 8px; margin-bottom: 10px;">
+                    Expandir / Recolher Painel
+                </summary>
+                
+                <div class="panel-content">
+                    <!-- Formulário Recolhível (Formulário dentro da nota) -->
+                    <details id="note-form-accordion" class="form-accordion">
+                        <summary id="note-form-title">➕ Criar Nova Nota</summary>
+                        <div class="form-content">
+                            <input type="text" id="note-title" placeholder="Ex: Conserto da máquina">
+
+                            <div style="position: relative;">
+                                <label>Vincular Biblioteca</label>
+                                <input type="text" id="link-library-input" placeholder="Buscar e anexar..." oninput="showSuggestions(this.value)">
+                                <div id="suggestions" class="autocomplete-suggestions" style="display: none; position:absolute;"></div>
+                            </div>
+
+                            <textarea id="note-content" rows="6" placeholder="Escreva aqui..."></textarea>
+
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                                <input type="file" id="note-image-input" accept="image/*" style="display: none;" onchange="handleNoteImageSelection(event)">
+                                <input type="file" id="note-camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handleNoteImageSelection(event)">
+                                <button class="btn-outline" onclick="document.getElementById('note-image-input').click()">🖼️ Galeria</button>
+                                <button class="btn-outline" onclick="document.getElementById('note-camera-input').click()">📷 Câmera</button>
+                                <button class="btn-outline" id="btn-record-note-audio" onclick="toggleNoteAudioRecording()">🎤 Áudio</button>
+                            </div>
+
+                            <div class="media-preview-container" id="note-media-preview-area"></div>
+                            
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="saveNoteItem()" id="btn-save-note">Salvar Nota</button>
+                                <button onclick="cancelNoteEdit()" id="btn-cancel-note" style="display: none; background: #94a3b8; width: auto;">Cancelar</button>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- AQUI: IDs originais preservados para que a pesquisa funcione -->
+                    <div class="search-wrapper">
+            <input type="text" id="search-notes" placeholder="🔍 Pesquisar em todas as notas..." oninput="handleSearchClear(this, 'search-notes', triggerSearchNotes)" style="margin-top: 10px; padding-right: 30px;">
+            <span class="clear-btn" onclick="clearSearch('search-notes', triggerSearchNotes)">✕</span>
+        </div>
             <div class="scroll-list" id="notes-list">
                 <div id="notes-container"></div>
                 <!-- Sentinela para o Infinite Scroll -->
@@ -205,7 +227,11 @@
     </details>
 </div>
 
-
+<div style="padding: 5px; display: flex; gap: 10px;">
+    <button onclick="exportarDados()" style="background: #10b981;">📥 Exportar Backup</button>
+    <button onclick="document.getElementById('file-import').click()" style="background: #f59e0b;">📤 Importar Backup</button>
+    <input type="file" id="file-import" style="display:none" onchange="importarDados(event)">
+</div>
 <!-- MODAL DA BIBLIOTECA -->
 <div class="modal-overlay" id="info-modal" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -217,7 +243,7 @@
             <button class="close-btn" onclick="closeModal(null, true)">✕</button>
         </div>
         <div id="modal-media" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;"></div>
-        <div class="modal-body" id="modal-body" style="white-space: pre-wrap; font-size: 1rem; color: #334155;"></div>
+        <div class="modal-body" id="modal-body" style="white-space: pre; overflow: scroll; font-size: 1rem; color: #334155;"></div>
     </div>
 </div>
 
@@ -630,6 +656,111 @@
             if(modalMedia.querySelector('audio')) modalMedia.querySelector('audio').pause();
         }
     }
+    // Gerencia a aparição do X quando você digita
+function handleSearchClear(input, inputId, triggerFn) {
+    const btn = input.nextElementSibling;
+    btn.style.display = input.value.length > 0 ? 'block' : 'none';
+    
+    // Chama sua função original de busca
+    triggerFn();
+}
+
+// Limpa o input e chama sua função de busca para resetar a lista
+function clearSearch(inputId, triggerFn) {
+    const input = document.getElementById(inputId);
+    input.value = '';
+    input.nextElementSibling.style.display = 'none'; // Esconde o X novamente
+    triggerFn(); // Roda a busca com valor vazio (mostra tudo)
+    input.focus();
+}
+//funçoes para importar e exportar
+// --- FUNÇÃO DE AUXÍLIO PARA CONVERTER BLOB PARA BASE64 ---
+const blobToBase64 = (blob) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+};
+
+// --- EXPORTAR ---
+async function exportarDados() {
+    const backup = {
+        library: [],
+        notes: []
+    };
+
+    // Processa Biblioteca
+    for (let item of allLibData) {
+        let copy = { ...item };
+        if (copy.imageFile instanceof Blob) copy.imageFile = await blobToBase64(copy.imageFile);
+        if (copy.audioFile instanceof Blob) copy.audioFile = await blobToBase64(copy.audioFile);
+        backup.library.push(copy);
+    }
+
+    // Processa Notas
+    for (let item of allNotesData) {
+        let copy = { ...item };
+        if (copy.imageFile instanceof Blob) copy.imageFile = await blobToBase64(copy.imageFile);
+        if (copy.audioFile instanceof Blob) copy.audioFile = await blobToBase64(copy.audioFile);
+        backup.notes.push(copy);
+    }
+
+    const dataStr = JSON.stringify(backup);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "backup_cerebro.json";
+    a.click();
+}
+
+// --- IMPORTAR ---
+function importarDados(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const backup = JSON.parse(e.target.result);
+
+        const transaction = db.transaction(["library", "notes"], "readwrite");
+        transaction.objectStore("library").clear();
+        transaction.objectStore("notes").clear();
+
+        // Helper para converter Base64 para Blob
+        const b64ToBlob = (b64) => {
+            const byteString = atob(b64.split(',')[1]);
+            const mime = b64.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+            return new Blob([ab], { type: mime });
+        };
+
+        // Importa Biblioteca
+        for (let item of backup.library) {
+            if (typeof item.imageFile === 'string') item.imageFile = b64ToBlob(item.imageFile);
+            if (typeof item.audioFile === 'string') item.audioFile = b64ToBlob(item.audioFile);
+            transaction.objectStore("library").add(item);
+        }
+
+        // Importa Notas
+        for (let item of backup.notes) {
+            if (typeof item.imageFile === 'string') item.imageFile = b64ToBlob(item.imageFile);
+            if (typeof item.audioFile === 'string') item.audioFile = b64ToBlob(item.audioFile);
+            transaction.objectStore("notes").add(item);
+        }
+
+        transaction.oncomplete = () => {
+            alert("Backup importado com sucesso!");
+            loadAllData(); // Recarrega a tela
+        };
+    };
+    reader.readAsText(file);
+}
 </script>
 </body>
 </html>
