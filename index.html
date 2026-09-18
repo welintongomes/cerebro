@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Busca Inteligente Offline</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❓</text></svg>">
 <style>
   :root {
     --bg: #0f1115;
@@ -224,6 +225,7 @@
   }
   #virtSpacer { position: relative; width: 100%; }
   .doc-card.virt {
+    box-shadow: 0 -6px 14px rgba(0, 0, 0, 0.18);
     position: absolute;
     left: 0;
     right: 0;
@@ -696,6 +698,9 @@
 </aside>
 
 <main class="main">
+  <div class="content" id="content">
+    <!-- dynamic -->
+  </div>
   <div class="toolbar">
     <button class="btn-icon mobile-toggle" onclick="toggleSidebar()" aria-label="Abrir menu">☰</button>
     <div class="search-box">
@@ -706,9 +711,7 @@
     <button class="btn btn-ghost btn-sm" onclick="clearSearch()">Limpar</button>
   </div>
 
-  <div class="content" id="content">
-    <!-- dynamic -->
-  </div>
+  
 </main>
 
 <!-- Modal -->
@@ -1267,7 +1270,7 @@ function renderEditor(el) {
   el.innerHTML = `
     <div class="doc-view">
       <div class="doc-view-header">
-        <button class="btn btn-ghost btn-sm" onclick="backToList()">← Voltar</button>
+        
         <input class="title-input" id="editTitle" value="${escapeHtml(d.title || '')}" placeholder="Título do texto">
         <button class="btn btn-primary btn-sm" onclick="saveDoc()">Salvar</button>
         ${d.id ? `<button class="btn btn-danger btn-sm" onclick="deleteDoc(${d.id})">Excluir</button>` : ''}
@@ -1295,6 +1298,7 @@ function renderEditor(el) {
         <div class="find-overlay" id="findOverlay"></div>
         <textarea class="content-area" id="editContent" placeholder="Cole ou digite o texto aqui..." onscroll="syncFindOverlayScroll()" oninput="if (findQuery) runFind()">${escapeHtml(d.content || '')}</textarea>
       </div>
+      <button class="btn btn-ghost btn-sm" onclick="backToList()" style="margin-top: 15px;">← Voltar</button>
     </div>`;
 
   findMatches = [];
